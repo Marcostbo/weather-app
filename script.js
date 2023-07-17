@@ -3,6 +3,32 @@ const API_KEY = "f4d84a0e6148a8aa2fbc9455391ae8ba"
 const cityInput = document.querySelector(".city-input");
 const searchButton = document.querySelector(".search-btn");
 
+const currentWeatherDiv = document.querySelector(".current-weather");
+const weatherCardsDiv = document.querySelector(".weather-cards");
+
+const createWeatherCard = (cityName, weatherItem, index) => {
+    if(index === 0) { // HTML for the main weather card
+        return `<div class="details">
+                    <h2>${cityName} (${weatherItem.dt_txt.split(" ")[0]})</h2>
+                    <h6>Temperature: ${(weatherItem.main.temp - 273.15).toFixed(2)}°C</h6>
+                    <h6>Wind: ${weatherItem.wind.speed} M/S</h6>
+                    <h6>Humidity: ${weatherItem.main.humidity}%</h6>
+                </div>
+                <div class="icon">
+                    <img src="https://openweathermap.org/img/wn/${weatherItem.weather[0].icon}@4x.png" alt="weather-icon">
+                    <h6>${weatherItem.weather[0].description}</h6>
+                </div>`;
+    } else { // HTML for the other five day forecast card
+        return `<li class="card">
+                    <h3>(${weatherItem.dt_txt.split(" ")[0]})</h3>
+                    <img src="https://openweathermap.org/img/wn/${weatherItem.weather[0].icon}@4x.png" alt="weather-icon">
+                    <h6>Temp: ${(weatherItem.main.temp - 273.15).toFixed(2)}°C</h6>
+                    <h6>Wind: ${weatherItem.wind.speed} M/S</h6>
+                    <h6>Humidity: ${weatherItem.main.humidity}%</h6>
+                </li>`;
+    }
+}
+
 
 const getWeatherDetails = (cityName, latitude, longitude) => {
     const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`;
@@ -16,7 +42,22 @@ const getWeatherDetails = (cityName, latitude, longitude) => {
                 return uniqueForecastDays.push(forecastDate);
             }
         });
-        console.log(fiveDaysForecast);     
+        console.log(fiveDaysForecast);
+        
+        // Clearing previous weather data
+        cityInput.value = "";
+        weatherCardsDiv.innerHTML = "";
+        currentWeatherDiv.innerHTML = "";
+
+        // Creating weather cards and adding them to the DOM
+        fiveDaysForecast.forEach((weatherItem, index) => {
+            const html = createWeatherCard(cityName, weatherItem, index);
+            if (index === 0) {
+                currentWeatherDiv.insertAdjacentHTML("beforeend", html);
+            } else {
+                weatherCardsDiv.insertAdjacentHTML("beforeend", html);
+            }
+        });
     })
     .catch(() => {
         alert("An error occurred while fetching the weather forecast!");
