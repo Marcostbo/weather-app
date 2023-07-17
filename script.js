@@ -1,0 +1,45 @@
+const API_KEY = "f4d84a0e6148a8aa2fbc9455391ae8ba"
+
+const cityInput = document.querySelector(".city-input");
+const searchButton = document.querySelector(".search-btn");
+
+
+const getWeatherDetails = (cityName, latitude, longitude) => {
+    const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`;
+
+    fetch(WEATHER_API_URL).then(response => response.json()).then(data => {
+        // Filter the forecasts to get only one forecast per day
+        const uniqueForecastDays = [];
+        const fiveDaysForecast = data.list.filter(forecast => {
+            const forecastDate = new Date(forecast.dt_txt).getDate();
+            if (!uniqueForecastDays.includes(forecastDate)) {
+                return uniqueForecastDays.push(forecastDate);
+            }
+        });
+        console.log(fiveDaysForecast);     
+    })
+    .catch(() => {
+        alert("An error occurred while fetching the weather forecast!");
+    });
+}
+
+
+const getCityCoordinates = () => {
+    const cityName = cityInput.value.trim();
+
+    if (cityName === "") return;
+
+    const COORDINATES_API_URL = `https://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${API_KEY}`;
+    
+    // Get entered city coordinates (latitude, longitude, and name) from the API response
+    fetch(COORDINATES_API_URL).then(response => response.json()).then(data => {
+        if (!data.length) return alert(`No coordinates found for ${cityName}`);
+        const { lat, lon, name } = data[0];
+        getWeatherDetails(name, lat, lon);
+    })
+    .catch(() => {
+        alert("An error occurred while fetching the coordinates!");
+    });
+}
+
+searchButton.addEventListener("click", getCityCoordinates);
