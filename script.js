@@ -32,9 +32,11 @@ const createWeatherCard = (cityName, weatherItem, index) => {
 
 
 const getWeatherDetails = (cityName, latitude, longitude) => {
+    console.log({cityName, latitude, longitude})
     const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`;
 
     fetch(WEATHER_API_URL).then(response => response.json()).then(data => {
+        console.log(data)
         // Filter the forecasts to get only one forecast per day
         const uniqueForecastDays = [];
         const fiveDaysForecast = data.list.filter(forecast => {
@@ -84,4 +86,9 @@ const getCityCoordinates = () => {
     });
 }
 
+const baseCityName = 'London';
+const baseLatitude = '51.5073219';
+const baseLongitude = '-0.1276474';
+
 searchButton.addEventListener("click", getCityCoordinates);
+document.addEventListener('DOMContentLoaded', getWeatherDetails(baseCityName, baseLatitude, baseLongitude))
