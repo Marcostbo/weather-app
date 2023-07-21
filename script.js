@@ -3,6 +3,7 @@ const API_KEY = "f4d84a0e6148a8aa2fbc9455391ae8ba"
 
 const cityInput = document.querySelector(".city-input");
 const searchButton = document.querySelector(".search-btn");
+const locationButton = document.querySelector(".location-btn");
 
 const currentWeatherDiv = document.querySelector(".current-weather");
 const weatherCardsDiv = document.querySelector(".weather-cards");
@@ -32,11 +33,9 @@ const createWeatherCard = (cityName, weatherItem, index) => {
 
 
 const getWeatherDetails = (cityName, latitude, longitude) => {
-    console.log({cityName, latitude, longitude})
     const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`;
 
     fetch(WEATHER_API_URL).then(response => response.json()).then(data => {
-        console.log(data)
         // Filter the forecasts to get only one forecast per day
         const uniqueForecastDays = [];
         const fiveDaysForecast = data.list.filter(forecast => {
@@ -45,7 +44,6 @@ const getWeatherDetails = (cityName, latitude, longitude) => {
                 return uniqueForecastDays.push(forecastDate);
             }
         });
-        console.log(fiveDaysForecast);
         
         // Clearing previous weather data
         cityInput.value = "";
@@ -90,5 +88,26 @@ const baseCityName = 'London';
 const baseLatitude = '51.5073219';
 const baseLongitude = '-0.1276474';
 
+const getUserLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+        position => {// Success callback
+            const {latitude, longitude} = position.coords;
+            // Get city name from user's location
+            const REVERSE_GEOCODING_URL = `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${API_KEY}`;
+
+            fetch(REVERSE_GEOCODING_URL).then(response => response.json()).then(
+                data => {
+                    const cityName = data[0].name;
+                    getWeatherDetails(cityName, latitude, longitude);
+                }
+            );
+        },
+        error => {// Error callback
+            console.log(error);
+        }
+    );
+}
+
+locationButton.addEventListener("click", getUserLocation);
 searchButton.addEventListener("click", getCityCoordinates);
 document.addEventListener('DOMContentLoaded', getWeatherDetails(baseCityName, baseLatitude, baseLongitude))
