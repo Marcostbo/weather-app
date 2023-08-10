@@ -1,26 +1,29 @@
 <template>
     <div class="weather-data">
-        <div class="current-weather">
+        <div v-if="isFetching">
+            Loading...
+        </div>
+        <div v-else class="current-weather">
             <div class="details">
-                <h2>{{ getCityName }} ( ______ )</h2>
-                <h6>Temperature: __°C</h6>
-                <h6>Wind: __ m/s</h6>
-                <h6>Humidity: __%</h6>
+                <h2>{{ cityName }} ( {{ fiveDaysForecast[0].dt_txt.split(" ")[0] }} )</h2>
+                <h6>Temperature: {{ (fiveDaysForecast[0].main.temp - 273.15).toFixed(2) }} °C</h6>
+                <h6>Wind: {{ fiveDaysForecast[0].wind.speed }} m/s</h6>
+                <h6>Humidity: {{ fiveDaysForecast[0].main.humidity }} %</h6>
             </div>
             <div class="icon">
-                <img :src="baseSky" alt="weather-icon">
-                <h4> Moderate Rain </h4>
+                <img :src="getWeatherImage(fiveDaysForecast[0])" alt="weather-icon">
+                <h4> {{ fiveDaysForecast[0].weather[0].description }} </h4>
             </div>
         </div>
         <div class="days-forecast">
             <h2> 5-Day Forecast </h2>
             <ul class="weather-cards">
-                <li v-for="forecast in forecasts" class="card">
-                    <h3> {{ forecast.day }} </h3>
-                    <img :src="baseSky" alt="weather-icon">
-                    <h4> Temperature: {{ forecast.temperature }} °C </h4>
-                    <h4> Wind: {{ forecast.wind }} m/s </h4>
-                    <h4> Humidity: {{ forecast.humidity }}% </h4>
+                <li v-for="forecast in fiveDaysForecast.slice(1)" class="card">
+                    <h3>{{ cityName }} ( {{ forecast.dt_txt.split(" ")[0] }} )</h3>
+                    <img :src="getWeatherImage(forecast)" alt="weather-icon">
+                    <h4>Temperature: {{ (forecast.main.temp - 273.15).toFixed(2) }} °C</h4>
+                    <h4>Wind: {{ forecast.wind.speed }} m/s</h4>
+                    <h4>Humidity: {{ forecast.main.humidity }} %</h4>
                 </li>
             </ul>
         </div>
@@ -30,38 +33,75 @@
 <script>
 import { cityNameStore } from '../stores.js'
 
+const API_KEY = "f4d84a0e6148a8aa2fbc9455391ae8ba";
+
 export default {
-    created() {
-        this.getBaseSky(); // Get the sky after the component is loaded
+    created: async function() {
+        const defaultCity = cityNameStore().cityName;
+        console.log(defaultCity);
+        await this.fetchWeather(defaultCity);
+        console.log(this.fiveDaysForecast);
+    },
+    watch: {
+        cityName(newCityName) {
+            this.isFetching = true;
+            this.fetchWeather(newCityName);
+            console.log(this.fiveDaysForecast);
+        },
     },
     computed: {
-        getCityName() {
+        cityName() {
             return cityNameStore().cityName;
-        }
+        },
     },
     methods: {
-        getBaseSky() {
-            this.baseSky = "https://openweathermap.org/img/wn/10d@4x.png";
+        getWeatherImage(forecast) {
+            return `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`
+        },
+        async fetchWeather(cityName) {
+            try {
+                const COORDINATES_API_URL = `https://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${API_KEY}`;
+                const coordinatesResponse = await fetch(COORDINATES_API_URL);
+                const coordinatesData = await coordinatesResponse.json();
+
+                if (!coordinatesData.length) {
+                    alert(`No coordinates found for ${cityName}`);
+                    return;
+                }
+
+                const { lat, lon, name } = coordinatesData[0];
+
+                const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+                const weatherResponse = await fetch(WEATHER_API_URL);
+                const weatherData = await weatherResponse.json();
+
+                const uniqueForecastDays = [];
+                const fiveDaysForecast = weatherData.list.filter(forecast => {
+                    const forecastDate = new Date(forecast.dt_txt).getDate();
+                    if (!uniqueForecastDays.includes(forecastDate)) {
+                        return uniqueForecastDays.push(forecastDate);
+                    }
+                });
+
+                this.fiveDaysForecast = fiveDaysForecast;
+                this.isFetching = false;
+            } catch (error) {
+                alert("An error occurred while fetching the coordinates or weather details!");
+            }
         }
     },
     data() {
         return {
-            baseSky: "",
-            forecasts: [
-                { day: '2023-08-11', temperature: 31, wind: 2, humidity: 10 },
-                { day: '2023-08-12', temperature: 32, wind: 12, humidity: 12 },
-                { day: '2023-08-13', temperature: 33, wind: 9, humidity: 7 },
-                { day: '2023-08-14', temperature: 34, wind: 8, humidity: 12 },
-                { day: '2023-08-15', temperature: 35, wind: 5, humidity: 10 }
-            ]
+            fiveDaysForecast: [],
+            isFetching: true,
         }
     }
 }
-
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+
 .weather-data {
     width: 100%;
 }
@@ -127,4 +167,5 @@ export default {
 .weather-cards .card img {
     max-width: 70px;
     margin: 5px 0 -12px 0;
-}</style>
+}
+</style>
