@@ -9,7 +9,7 @@
 <script>
 import Navbar from './components/NavBar.vue'
 import Cityinput from './components/CityInput.vue'
-import WeatherDisplay from './components/weatherDisplay.vue'
+import WeatherDisplay from './components/WeatherDisplay.vue'
 
 export default {
     components: {
