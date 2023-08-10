@@ -1,5 +1,4 @@
 <template>
-<div class="container">
     <div class="weather-input">
         <h3>Enter a City Name</h3>
         <input class="city-input" type="text" v-model="cityInput" 
@@ -9,7 +8,6 @@
         <button class="location-btn"> Use Current Location </button>
         {{ isChanged }}
     </div>
-</div>
 </template>
 
 <script>
@@ -39,11 +37,6 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
-.container {
-  display: flex;
-  gap: 35px;
-  padding: 30px;
-}
 .weather-input {
   width: 550px;
 }
