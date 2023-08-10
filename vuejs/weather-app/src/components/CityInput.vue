@@ -3,33 +3,25 @@
         <h3>Enter a City Name</h3>
         <input class="city-input" type="text" v-model="cityInput" 
         placeholder="E.g., Juiz de Fora, Rio de Janeiro, London">
-        <button class="search-btn" @click.prevent="getCity()"> Search </button>
+        <button class="search-btn" @click.prevent="setCity()"> Search </button>
         <div class="separator"></div>
         <button class="location-btn"> Use Current Location </button>
-        {{ isChanged }}
     </div>
 </template>
 
 <script>
+import { cityNameStore } from '../stores.js'
 
 export default {
     data() {
         return {
-            cityInput: 'London',
-            cityChanged: 'No'
+            cityInput: '',
         };
     },
-    computed: {
-        isChanged() {
-            if (this.cityInput != 'London') {
-                return 'Yes';
-            };
-            return 'No';
-        }
-    },
     methods: {
-        getCity() {
-            console.log(this.cityInput);
+        setCity() {
+            const store = cityNameStore();
+            store.setCityName(this.cityInput);
         }
     }
 }

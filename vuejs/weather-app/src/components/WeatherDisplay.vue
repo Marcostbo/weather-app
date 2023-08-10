@@ -2,7 +2,7 @@
     <div class="weather-data">
         <div class="current-weather">
             <div class="details">
-                <h2>_______ ( ______ )</h2>
+                <h2>{{ getCityName }} ( ______ )</h2>
                 <h6>Temperature: __°C</h6>
                 <h6>Wind: __ m/s</h6>
                 <h6>Humidity: __%</h6>
@@ -28,10 +28,16 @@
 </template>
 
 <script>
+import { cityNameStore } from '../stores.js'
 
 export default {
     created() {
         this.getBaseSky(); // Get the sky after the component is loaded
+    },
+    computed: {
+        getCityName() {
+            return cityNameStore().cityName;
+        }
     },
     methods: {
         getBaseSky() {
